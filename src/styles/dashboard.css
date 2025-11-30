@@ -105,6 +105,12 @@
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05);
 }
 
+.activity-card {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
 .map-trend-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

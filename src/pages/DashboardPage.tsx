@@ -11,6 +11,9 @@ import { useAnalytics } from '../hooks/useAnalytics'
 import type { RangeOption } from '../features/analytics/types'
 import { buildDonutStops, buildSparklinePoints } from '../utils/chart'
 import '../styles/dashboard.css'
+import { ActivityTotalsChart } from '../components/activity/ActivityTotalsChart'
+import { ActivityStackedChart } from '../components/activity/ActivityStackedChart'
+import { useActivityAnalytics } from '../hooks/useActivityAnalytics'
 
 const rangeOptions: RangeOption[] = ['Day', 'Week', 'Month', 'Year']
 const emotionPalette = ['#2563eb', '#7c3aed', '#06b6d4', '#22c55e', '#f97316', '#f43f5e']
@@ -51,6 +54,13 @@ const DashboardPage = () => {
     (data?.counts.positive ?? 0) + (data?.counts.neutral ?? 0) + (data?.counts.negative ?? 0)
   const trendLabel = trendTotals.length ? `${trendTotals.at(-1)} latest volume` : 'Awaiting data'
 
+  const {
+    data: activityData,
+    status: activityStatus,
+    error: activityError,
+    refresh: refreshActivity,
+  } = useActivityAnalytics()
+
   return (
     <div className="analytics-shell">
       <div className="analytics-page">
@@ -73,8 +83,9 @@ const DashboardPage = () => {
             </button>
           </div>
         ) : data ? (
-          <div className="analytics-body">
-            <div className="analytics-main">
+          <>
+            <div className="analytics-body">
+              <div className="analytics-main">
               <MapTrendSection
                 counts={data.counts}
                 rangeLabel={range}
@@ -115,8 +126,30 @@ const DashboardPage = () => {
               />
 
               <GrowthCard growthSeries={trendTotals} labels={axisLabels} />
+              </div>
             </div>
-          </div>
+            <div className="analytics-body">
+              <div className="analytics-main">
+                {activityStatus === 'loading' && !activityData ? (
+                  <div className="surface activity-card">
+                    <p>Loading activity…</p>
+                  </div>
+                ) : activityError ? (
+                  <div className="surface activity-card">
+                    <p>Unable to load activity overview.</p>
+                    <button type="button" className="secondary-btn" onClick={refreshActivity}>
+                      Retry
+                    </button>
+                  </div>
+                ) : activityData ? (
+                  <div className="map-trend-grid">
+                    <ActivityTotalsChart totals={activityData.totals} />
+                    <ActivityStackedChart stackedSeries={activityData.stackedSeries} />
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </>
         ) : (
           <p>Analytics unavailable right now.</p>
         )}
